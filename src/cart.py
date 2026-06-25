@@ -12,16 +12,21 @@ E-2   price/qty 음수 → ValueError(인덱스 포함)
 THRESHOLD = 50000  # INV-2 문턱 금액 (SSOT)
 
 
-def subtotal(items):
-    if items is None:  # E-1
-        raise TypeError("items must not be None")
-    total = 0  # INV-1
+def _validate_line_items(items):
     for index, item in enumerate(items):
         price = item["price"]
         qty = item["qty"]
         if price < 0 or qty < 0:  # E-2
             raise ValueError(f"negative price or qty at index {index}")
-        total += price * qty  # INV-1
+
+
+def subtotal(items):
+    if items is None:  # E-1
+        raise TypeError("items must not be None")
+    _validate_line_items(items)  # E-2
+    total = 0  # INV-1
+    for item in items:
+        total += item["price"] * item["qty"]  # INV-1
     return total  # INV-1
 
 
