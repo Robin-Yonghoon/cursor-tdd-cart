@@ -82,6 +82,37 @@
 2. **GREEN** — 해당 계약 ID를 만족하는 최소 구현을 작성합니다. 구현 줄에는 충족한 계약 ID를 주석으로 표기합니다.
 3. **REFACTOR** — 모든 테스트가 통과한 상태에서 구조를 개선합니다. 리팩터링 전후로 `pytest -q`로 동작이 변하지 않았는지 확인합니다.
 
+## REFACTOR 계획 (Track B · subtotal)
+
+`subtotal`의 **Mixed Responsibilities** 스멜을 해소하기 위해, E-2 검증만 `_validate_line_items(items)`로 추출합니다. E-1(`items is None → TypeError`)은 `subtotal`에 그대로 둡니다.
+
+### 목적
+
+- 검증(E-2)과 집계(INV-1) 책임 분리
+- E-2만 private helper로 이동, E-1은 `subtotal` 진입점에 유지
+
+### 변경 범위
+
+- **변경 파일:** `src/cart.py`만 (`tests/` 수정 없음)
+- **제외:** `sum()` 변환, 상수 추출, `apply_threshold_discount` / `final_total` / `THRESHOLD`
+
+### 동작 불변 체크리스트
+
+리팩터링 전후로 아래가 동일해야 합니다.
+
+- **E-1:** `subtotal(None)` → `TypeError`
+- **E-2:** 음수 `price`/`qty` → `ValueError`, 메시지에 인덱스 포함
+- **INV-1:** `subtotal([{"price": 1000, "qty": 3}, {"price": 2000, "qty": 2}]) == 7000`
+
+### 완료 기준
+
+- 리팩터링 **전** `pytest -q` → GREEN
+- 리팩터링 **후** `pytest -q` → GREEN (동작 불변)
+
+### 예상 diff
+
+- `src/cart.py` **+3~5줄** (`_validate_line_items` 추출 및 `subtotal` 위임)
+
 ## 테스트 실행
 
 ```bash
